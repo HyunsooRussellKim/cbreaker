@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+		xmlns:p="http://www.springframework.org/schema/p" xmlns:context="http://www.springframework.org/schema/context"
+		xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-2.5.xsd
+				http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-2.5.xsd">
+	
+    <bean id="propertyService" class="egovframework.rte.fdl.property.impl.EgovPropertyServiceImpl" destroy-method="destroy">
+        <property name="properties">
+            <map>
+            	<entry key="Global.shape.workDir" value="${Global.shape.workDir}"/>
+            	<entry key="Global.shape.connectionType" value="${Global.shape.connectionType}"/>
+            	<entry key="Global.shape.jndiName" value="${Global.shape.jndiName}"/>
+            	<entry key="Global.shape.driverClassName" value="${Global.shape.driverClassName}"/>
+            	<entry key="Global.shape.url" value="${Global.shape.url}"/>
+            	<entry key="Global.shape.username" value="${Global.shape.username}"/>
+            	<entry key="Global.shape.password" value="${Global.shape.password}"/>
+                <entry key="Global.shape.maxConnection" value="${Global.shape.maxConnection}"/>
+                <entry key="Global.shape.minConnection" value="${Global.shape.minConnection}"/>
+                <entry key="Global.shape.validateConnections" value="${Global.shape.validateConnections}"/>
+                <entry key="Global.shape.dbCharset" value="${Global.shape.dbCharset}"/>
+           	</map>
+        </property>
+    </bean>
+    	<bean id="messageSource" class="org.springframework.context.support.ReloadableResourceBundleMessageSource">
+		<property name="basenames">
+			<list>
+				<value>classpath:/egovframework/message/message-common</value>
+				<value>classpath:/egovframework/rte/fdl/idgnr/messages/idgnr</value>
+				<value>classpath:/egovframework/rte/fdl/property/messages/properties</value>
+			</list>
+		</property>
+		<property name="cacheSeconds">
+			<value>60</value>
+		</property>
+	</bean>
+	
+	<bean id="leaveaTrace" class="egovframework.rte.fdl.cmmn.trace.LeaveaTrace">
+		<property name="traceHandlerServices">
+			<list>
+				<ref bean="traceHandlerService" />
+			</list>
+		</property>
+	</bean>
+
+	<bean id="traceHandlerService"
+		class="egovframework.rte.fdl.cmmn.trace.manager.DefaultTraceHandleManager">
+		<property name="reqExpMatcher">
+			<ref bean="antPathMater" />
+		</property>
+		<property name="patterns">
+			<list>
+				<value>*</value>
+			</list>
+		</property>
+		<property name="handlers">
+			<list>
+				<ref bean="defaultTraceHandler" />
+			</list>
+		</property>
+	</bean>
+	
+	<bean id="antPathMater" class="org.springframework.util.AntPathMatcher" />
+
+	<bean id="defaultTraceHandler"
+		class="egovframework.rte.fdl.cmmn.trace.handler.DefaultTraceHandler" />
+	 
+    <context:component-scan base-package="egovframework">
+       <context:exclude-filter type="annotation" expression="org.springframework.stereotype.Controller" />
+    </context:component-scan>
+      
+</beans>

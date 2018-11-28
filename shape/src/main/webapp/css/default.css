@@ -1,0 +1,23 @@
+@charset "utf-8";
+/* CSS Document */
+
+body, h1, h2, h3, h4, h5, div, dl ,dt, dd, ul, ol, li, fieldset, form, label, p, th, td, input, button, iframe{margin: 0; padding: 0; font-family: dotum, gulim, sans-serif; font-size: 12px; color: #343434;}
+img, fieldset, button, iframe{border: 0;}
+img, input, select, textarea{vertical-align: middle; font-family: dotum, gulim, sans-serif;}
+hr{display: none;}
+ol, ul, li{list-style: none;}
+a{color: #343434; text-decoration: none; cursor: pointer;}
+/* a:hover{text-decoration: underline;} */
+select, input{font-size: 12px; font-family: dotum; color: #343434;}
+button{cursor: pointer;}
+strong{font-weight: bold;}
+span.bold{font-weight: bold;}
+.off{display: none;}
+.hide{overflow: hidden; position: absolute; text-indent: -3000em;}
+.ir span{display: block; overflow: hidden; visibility: hidden; position: relative; visibility: hidden; z-index: -1;}
+.no_bg{background: none;}
+table{border-collapse:collapse; border:0;}
+
+html, body {
+	background:#e6e6e6
+}

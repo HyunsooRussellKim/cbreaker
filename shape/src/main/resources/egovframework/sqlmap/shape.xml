@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="Shape">
+	<statement id="Shape.createGeometryTable" parameterClass="map">
+		create table #tableName#
+		(
+			FTR_IDN  INT  NOT NULL,
+			MINX     FLOAT NULL,
+			MINY     FLOAT NULL,
+			MAXX     FLOAT NULL,
+			MAXY     FLOAT NULL,
+			GEOMETRY BLOB  NULL,
+			PRIMARY KEY(FTR_IDN)
+		) 	    
+	</statement>
+</sqlMap>
