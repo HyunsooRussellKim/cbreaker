@@ -1,0 +1,527 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <title>상수도관제사업</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <link rel="stylesheet" href="./webgis.style.css" type="text/css">
+    <style  type='text/css'>
+        .citusmap {
+            width: 1024px;
+            height: 500px;
+            border: 2px solid #ccc;
+        }
+    </style>
+    <script src="https://code.jquery.com/jquery-1.9.1.min.js"></script>
+    <script src="./proj4js-compressed.js"></script>
+    <script src="./lib/OpenLayers.js"></script>
+    <!--<script src="./OpenLayers.js"></script>-->
+    <script src="./vworld.js"></script>
+    <script src="./ole/loader.js"></script>
+    <script src="./citusWebGIS.js"></script>
+    <!-- <script src="./citusWebGIS.min.js"></script> -->
+
+    <script type="text/javascript">
+
+        var webgis = null;
+
+        $(document).ready(function() {
+            webgis = new citus.WebGIS('map', {
+                url: {
+                    webgis: 'http://localhost:8180/gis/webgis/',
+                    shape: 'http://localhost:8180/gis/'
+                },
+                basemap: {
+                    //source: 'localmap',
+                    source: 'vworldmap'//,
+                    //url: 'http://localhost:8082/geoserver'
+                },                    
+                toolbar: {
+                    element : "navtoolbar"
+                },
+                editToolbar : {
+                    element : "edittoolbar"
+                },
+                layerSwitcher: {
+                    element : "layerbar"
+                },
+                handlers : {
+                    onSelect: function(f) {
+                        alert("fid : " + f.fid + ", FTR_IDN : " + f.attributes['FTR_IDN'] + ", FTR_CDE : " + f.attributes['FTR_CDE']);
+                    },
+                    onUnselect: function(f) {
+
+                    }
+                },
+                measures : {
+                    dist : function(m, u) {
+
+                    },
+                    area : function(m, u) {
+                        alert(m);
+                    }
+                }
+            });
+
+            webgis.load(function() {
+                if ($('#pipe_lm').is(':checked')) {
+                    this.addLayer(webgis.LAYER.WTL_PIPE_LM.SA001, function(e) {
+                        alert(e.message);
+                    });
+                }
+                if ($('#fire_ps').is(':checked')) {
+                    this.addLayer(webgis.LAYER.WTL_FIRE_PS.SA119);
+                }
+                if ($('#valve_ps').is(':checked')) {
+                    this.addLayer(webgis.LAYER.WTL_VALV_PS.SA200);
+                }
+
+                try {
+                    webgis.activeLayer(webgis.LAYER.WTL_FIRE_PS.SA119); // == "WTL_FIRE_PS.SA119"
+                }
+                catch (e) {
+                    alert(e.message);
+                }
+            });
+
+            webgis.featureByZoomLevel(webgis.LAYER.WTL_PIPE_LM.SA001, 17);
+
+            $('#toggle_map').change(function(e) {
+                webgis.switchBaseLayer(this.value);//param:0(GeoServer), 0(VWorld)
+            });
+            
+            $('#new_map').click(function(e) {
+                //window.open('', document.getElementById('map').toDataURL());
+                var c = document.getElementById('map');
+                //var t = c.getContext('2d');
+
+            });
+
+            $('#select_mode').click(function(e) {
+                webgis.setSelectionMode();
+            });
+            $('#show_label').click(function(e) {
+                webgis.setLabel(webgis.LAYER.WTL_FIRE_PS.SA119, 'FTR_STR', 0, -15);
+            });
+            $('#hide_label').click(function(e) {
+                webgis.setLabel(webgis.LAYER.WTL_FIRE_PS.SA119, null);
+            });
+
+            $('#zoomin_mode').click(function(e) {
+                webgis.setNavZoomInMode();
+            });
+            $('#zoomout_mode').click(function(e) {
+                webgis.setNavZoomOutMode();
+
+            });
+            $('#pan_mode').click(function(e) {
+                webgis.setNavPanMode();
+            });
+            $('#redraw').click(function(e) {
+                webgis.redraw();
+                //var a = webgis.getMapCenter();
+            });
+            $('#full_map').click(function(e) {
+                webgis.showFullMap();           // reset to default (lon, lat, zoom)
+            });
+            $('#move_map').click(function(e) {
+                // get center of MAP with zoom
+                var mapCenter = webgis.center();
+
+                // set center of MAP with zoom
+                //webgis.center(129.3977, 35.9679, 16, "4326");  // lon, lat, zoom, epsg4326
+                webgis.center(330374.24, 510509.96, 16, "5186");  // lon, lat, zoom, epsg5186
+            });
+            $('#measure_dist').click(function(e) {
+                webgis.measureDist(function (m, u) {
+                    //alert(m);
+                })
+            });
+            $('#measure_area').click(function(e) {
+                webgis.measureArea();
+            });
+            $('#transection').click(function(e) {
+                webgis.transectionMode(function(e) {
+                    if (e.message === 'success') {
+                        var f = e.feature;
+                    }
+                });
+            });
+
+
+            $('#transform_coord').click(function(e) {
+                var ptr = webgis.transformCoordinate(330487.94, 510306.51, "5186", "4019");
+                webgis.center(ptr.x, ptr.y, 16, "4019");
+
+            });
+
+            $('#do_ftr_zoom').click(function(e) {
+                webgis.findFeature(
+                    {
+                        layer: $('#ftr_layer').val(),
+                        index: $('#ftr_index').val()
+                    },
+                    function(e) {
+                        webgis.zoomTo(e.feature);
+                    }
+                );
+            });
+
+            $('#prev_map').click(function(e) {
+                webgis.movePrevPosition();
+            });
+            $('#next_map').click(function(e) {
+                webgis.moveNextPosition();
+            });
+
+            $('#enter_edit').click(function(e) {
+                webgis.startEditing(webgis.activeLayer(), {
+                    snaping : {
+                        layerName : webgis.LAYER.WTL_FIRE_PS.SA119,
+                        tolerance : 2
+                    }
+                });
+            });
+
+            $('#exit_edit').click(function(e) {
+                webgis.endEditing(
+                    function(fc, mode) {
+                        // fearture collection
+                        if (mode === 'Mod') {
+                            if (confirm("수정사항을 서버에 반영할까요?")) {
+                                return true;
+                            }
+                            else {
+                                return false;
+                            }
+                        }
+                        else if (mode === 'Add') {
+                            var i = 0;
+                        }
+                        else if (mode === 'Del') {
+                        }
+                    },
+                    function(e) {
+                        alert(e.message);
+                    }
+                );
+            });
+
+            $('#add_feature').click(function(e) {
+                webgis.settingSnap(webgis.LAYER.WTL_FIRE_PS.SA119, 20);
+                //webgis.settingSnap(webgis.LAYER.WTL_PIPE_LM.SA001, 20);
+                /*
+                 * Line을 그릴 때, 기존 라인 하나를 가로지르면   가는 방향의 왼쪽이 상월
+                 * 두개 이상을 가로지르면 상, 하월을 그리지 않음.
+                 * by lispee
+                 */ 
+                webgis.addFeature(webgis.activeLayer(), { FTR_IDN: 9, FTR_CDE: 'SA113' }, function(e) {
+                    // end of adding feature
+                    alert(e.message);
+                },
+                {
+                    overlapRadius : 10.0,
+                    onStart : function() {
+                        var i = 0;
+                    }
+                }
+                );
+            });
+
+            $('#select_feature').click(function(e) {
+                webgis.selectFeature();
+            });
+
+
+            $('#merge_feature').click(function(e) {
+                webgis.mergeFeatures(function(f, state) {
+                    var m = f.id + ' ' + state;
+                });
+            });
+
+            $('#split_feature').click(function(e) {
+            	/*
+				 * 두번 이상 콜백되는 현상 수정 완료(event listener register, unregister 쌍이 안맞았음)
+				 * split시 f.state=='UPDATE'인 f의
+				 * attribute와 data 필드의
+				 * FTR_IDN부분을 신규ID로 바꾸어 주어야 합니다.
+            	 * by lispee. 2015.03.27
+            	 */
+                webgis.splitFeature(function(f, state) {
+                    var s = f.id + ' ' + state;
+					if(f.state=="Insert") {
+						f.attributes.FTR_IDN = f.attributes.FTR_IDN + 1;
+						notinserted = false;
+					}
+					if(f.state=="Update") {
+						f.attributes.FTR_IDN = f.attributes.FTR_IDN;
+						notupdated = false;
+					}
+					
+                    //webgis.addGeometryToDB();
+                });
+            });
+
+            $('#modify_feature').click(function(e) {
+                webgis.modifyFeature();
+            });
+
+            $('#drag_feature').click(function(e) {
+                webgis.dragFeature();
+            });
+
+            $('#move_feature').click(function(e) {
+                webgis.moveFeature(100, -100);     // unit : m
+            });
+
+            $('#delete_feature').click(function(e) {
+                webgis.deleteFeature(
+                    webgis.activeLayer(),
+                    { FTR_IDN: 1124, FTR_CDE: 'SA119' },
+                    function(e) {
+                        if (e.message === 'success') {
+                            alert('삭제했습니다.');
+                        }
+                    }
+                );
+            });
+
+            $('#edit_attribute').click(function(e) {
+                var fc = webgis.selectedFeatures();
+                // fc : array of features
+                for (var i = 0; i < fc.length; i++) {
+                    fc[i].DUP_DIP = '0';
+                    webgis.addModified(fc[i]);
+                }
+            });
+
+            $('#transform_feature').click(function(e) {
+                webgis.transformFeature();
+            });
+
+            $('#snaping_setting').click(function(e) {
+                webgis.setSnaping(webgis.LAYER.WTL_PIPE_LM.SA001, 20);
+            });
+            $('#snaping_resetting').click(function(e) {
+                webgis.resetSnaping();
+            });
+            $('#undo_editing').click(function(e) {
+                webgis.undo();
+            });
+            $('#redo_editing').click(function(e) {
+                webgis.redo();
+            });
+
+            $('#fire_ps').change(function(e) {
+                if (!$(this).is(':checked')) {
+                    webgis.hideLayer(webgis.LAYER.WTL_FIRE_PS.SA119);
+                }
+                else {
+                    webgis.showLayer(webgis.LAYER.WTL_FIRE_PS.SA119, function(e) {
+                        try {
+                            webgis.activeLayer(webgis.LAYER.WTL_FIRE_PS.SA119); // == "WTL_FIRE_PS.SA119"
+                        }
+                        catch (e) {
+                            alert(e.message);
+                        }
+                    });
+                }
+            });
+            $('#pipe_lm').change(function(e) {
+                if (!$(this).is(':checked')) {
+                    webgis.hideLayer(webgis.LAYER.WTL_PIPE_LM.SA001);
+                }
+                else {
+                    webgis.showLayer(webgis.LAYER.WTL_PIPE_LM.SA001, function(e) {
+                        try {
+                            webgis.activeLayer(webgis.LAYER.WTL_PIPE_LM.SA001); // == "WTL_FIRE_PS.SA119"
+                        }
+                        catch (e) {
+                            alert(e.message);
+                        }
+                    });   
+                }
+            });
+            $('#valve_ps').change(function(e) {
+                if (!$(this).is(':checked')) {
+                    webgis.hideLayer(webgis.LAYER.WTL_VALV_PS.SA200);
+                }
+                else {
+                    webgis.showLayer(webgis.LAYER.WTL_VALV_PS.SA200, function(e) {
+                        try {
+                            webgis.activeLayer(webgis.LAYER.WTL_VALV_PS.SA200);
+                        }
+                        catch (e) {
+                            alert(e.message);
+                        }
+                    });   
+                }
+            });
+            $('#puri_as').change(function(e) {
+                if (!$(this).is(':checked')) {
+                    webgis.hideLayer(webgis.LAYER.WTL_PURI_AS.SA113);
+                }
+                else {
+                    webgis.showLayer(webgis.LAYER.WTL_PURI_AS.SA113, function(e) {
+                        try {
+                            webgis.activeLayer(webgis.LAYER.WTL_PURI_AS.SA113);
+                        }
+                        catch (e) {
+                            alert(e.message);
+                        }
+                    });   
+                }
+            });
+
+            $('#do_ftr_search').click(function(e) {
+                webgis.findFeature(
+                    {
+                        layer: $('#ftr_layer').val(),
+                        index: $('#ftr_index').val()
+                    },
+                    function(e) {
+                        webgis.setMarker(e.feature.centroid.x, e.feature.centroid.y, 16, "5187");
+                        // or
+                        webgis.highlightFeature(e.feature, function(f) {
+                            // do something
+                        });
+                    }
+                );
+            });
+
+            $('#search_poi').submit(function(e) {
+            	webgis.searchPoi();
+                
+                e.preventDefault();
+                return false;
+            });
+
+            $('#reset_marker').click(function(e) {
+                webgis.resetMarkers();
+            });
+
+            if($("#scale")!=null) {
+            	$('#scale').on('keyup', this, function(e) {
+            		if(e.keyCode==13) {
+            			webgis.setScale($("#scale").val().replace(/[^\d]+/g, ''));
+            		}
+				});
+            }
+        });
+
+        function callback(data) {
+            alert('here');
+        }
+
+
+    </script>
+  </head>
+  <!--<body onload="init()">-->
+  <body >
+    <h1 id="title">상수도관제사업 CitusWebGIS 엔진 샘플</h1>
+    <!--'navtoolbar', 'edittoolbar'는 hidden으로 유지해 놔야 함. -->
+    <div id='navtoolbar'></div>
+    <div id='edittoolbar'></div>
+
+    <div>
+        툴바 <br/>
+        <a href="#" class='nav_button' id='redraw'>다시 그리기</a> | 
+        <a href="#" class='nav_button' id='show_label'>소화전 레이블 보이기</a> |
+        <a href="#" class='nav_button' id='hide_label'>소화전 레이블 감추기</a> |
+        <a href="#" class='nav_button' id='select_mode'>선택모드</a> | 
+        <a href="#" class='nav_button' id='zoomin_mode'>확대모드</a> | 
+        <a href="#" class='nav_button' id='zoomout_mode'>축소모드</a> | 
+        <a href="#" class='nav_button' id='pan_mode'>이동모드</a> |
+        <a href="#" class='nav_button' id='full_map'>전체화면</a> |
+        <a href="#" class='nav_button' id='measure_dist'>거리측정</a> |
+        <a href="#" class='nav_button' id='measure_area'>면적측정</a> |
+        <a href="#" class='nav_button' id='transection'>횡단면도조회</a> |
+        <a href="#" class='nav_button' id='move_map'>지도이동</a> |
+        <a href="#" class='nav_button' id='transform_coord'>좌표변환</a> |
+        <a href="#" class='nav_button' id='prev_map'>이전영역</a> |
+        <a href="#" class='nav_button' id='next_map'>다음영역</a> |
+        <a href="#" class='edit_button' id='add_feature'>추가하기</a> | 
+        <a href="#" class='edit_button' id='delete_feature'>삭제하기</a> | 
+        <a href="#" class='nav_button' id='enter_edit'>수정편집모드</a> |
+        <!--<a href="#" class='nav_button' id='new_map'>맵모드</a> |-->
+    </div>
+    <div>
+        편집 툴바<br/>
+        <a href="#" class='edit_button' id='select_feature'>&lt; 선택하기</a> | 
+        <a href="#" class='edit_button' id='merge_feature'>병합하기</a> | 
+        <a href="#" class='edit_button' id='split_feature'>분할하기</a> | 
+        <a href="#" class='edit_button' id='move_feature'>이격거리이동</a> | 
+        <a href="#" class='edit_button' id='edit_attribute'>속성편집</a> &gt;| 
+        <a href="#" class='edit_button' id='drag_feature'>이동시키기</a> | 
+        <a href="#" class='edit_button' id='modify_feature'>중간점편집하기</a> | 
+        <a href="#" class='edit_button' id='transform_feature'>크기/회전하기</a> | 
+        <a href="#" class='edit_button' id='snaping_setting'>스내핑설정(상수관로)</a> | 
+        <a href="#" class='edit_button' id='snaping_resetting'>스내핑클리어</a> | 
+        <a href="#" class='edit_button' id='undo_editing'>실행취소</a> | 
+        <a href="#" class='edit_button' id='redo_editing'>재실행</a> | 
+        <a href="#" class='edit_button' id='exit_edit'>편집모드 종료</a> |
+    </div>
+    <div id='layer_panel'>
+        레이어<br/>
+        <input type="checkbox" class='layer_buton' id='fire_ps' name="fire_ps" checked>소화전</input>
+        <input type="checkbox" class='layer_buton' id='pipe_lm' name="pipe_lm">수도관로</input>
+        <input type="checkbox" class='layer_buton' id='puri_as' name="puri_as">정수장</input>
+    </div>
+    <div id='help_panel'>
+                  베이스맵 : 
+		<select id="toggle_map">
+			<option value="0" selected>Geoserver</option>
+			<option value="1">VWorld</option>
+		</select> |
+    	축척  1 : 
+        <input type="text" id='scale' name="scale"></input>
+    </div>
+    <div id="map" class="citusmap"></div>
+    <!--<div><a href="#" id="permalink">Permalink</a></div>-->
+    <div id='scale_bar'></div>
+    <div id='scale_bar_bottom'></div>
+    <div id='layerbar' class='olControlLayerSwitcher'></div>
+
+    <div>
+        <p>시설물 검색</p>
+        <!--
+        FTR_IDN : <input type='text' id='ftr_index' name="index" size='50' placeholder="FTR_IDN" value="100003"></input><br/>
+        LAYER : <input type='text' id='ftr_layer' name="layer" size='50' placeholder="WTL_PURI_AS.SA113" value="WTL_PURI_AS.SA113"></input><br/>
+        -->
+        FTR_IDN : <input type='text' id='ftr_index' name="index" size='50' placeholder="FTR_IDN" value="171"></input><br/>
+        LAYER : <input type='text' id='ftr_layer' name="layer" size='50' placeholder="WTL_FIRE_PS.SA119" value="WTL_FIRE_PS.SA119"></input><br/>
+        <input type='submit' id='do_ftr_search' value='시설물 검색/이동'></input>
+        <a href="#" id='do_ftr_zoom'>시설물로 줌</a>
+    </div>
+
+
+    <div>
+        <form id="search_poi">
+            <p>검색</p>
+            <input type='text' id='q' name="q" size='50' placeholder="입력하세요." value='영월군 '></input>
+            <input type="hidden" name="category" id="category" value = "Poi"> <!-- "Juso" = 새주소 검색,  "Jibun" = 지번 검색-->
+            <input type="hidden" name="pageUnit" value = "100">
+            <input type="hidden" name="pageIndex" value = "1">
+            <input type="hidden" name="output" value = "json">
+            <input type="hidden" name="apiKey" value = "4FAC4DA4-D9B1-3CE5-891C-CE3664473E79">
+            <input type='submit' id='do_search' value='검색'></input>
+        </form>
+    </div>
+    <div>
+        <a href="#" id='reset_marker'>마커 리셋</a> | 
+    </div>
+    <div id='search_result'></div>
+    <div>
+        <p>POINT TYPE GEOMETRY 추가하기 (동작안함)</p>
+        <input type='text' id='x_coord' placeholder='x 좌표'></input>
+        <input type='text' id='y_coord' placeholder='y 좌표'></input>
+        <input type='submit' id='do_add_point' value='추가'></input>
+    </div>
+    <div id="docs">
+        <p>정선영월군 상수도 관제사업용입니다.</p>
+    </div>
+
+  </body>
+</html>
