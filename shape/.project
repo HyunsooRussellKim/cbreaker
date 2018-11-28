@@ -46,4 +46,11 @@
 		<nature>egovframework.dev.imp.ide.natures.egovnature</nature>
 		<nature>org.eclipse.wst.jsdt.core.jsNature</nature>
 	</natures>
+	<linkedResources>
+		<link>
+			<name>src/main/webapp/webgis</name>
+			<type>2</type>
+			<location>D:/git/cbreaker/webgis</location>
+		</link>
+	</linkedResources>
 </projectDescription>
